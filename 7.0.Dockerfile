@@ -44,9 +44,8 @@ WORKDIR /tmp
 
 RUN set -eux; \
     curl -L -o wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}.${WKHTMLTOPDF_BASE_DEBIAN_VER}_${TARGETARCH}.deb"; \
-    dpkg -i ./wkhtmltox.deb || apt-get install --no-install-recommends -f -y; \
     apt-get install --no-install-recommends -y ./wkhtmltox.deb; \
-    rm -rf /tmp/*;
+    rm wkhtmltox.deb;
 
 
 # Create the runtime user
