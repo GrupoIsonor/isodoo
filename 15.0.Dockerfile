@@ -82,7 +82,7 @@ RUN set -ex; \
 
 
 # Install & activate UV
-ARG ODOO_PYTHON_VERSION="3.8" \
+ARG ODOO_PYTHON_VERSION="3.12" \
     SYSTEM_PYTHON_VERSION="3.13"
 ENV PATH="/home/odoo/.local/bin:/home/odoo/.uv-python/bin:$PATH" \
     UV_PYTHON_INSTALL_DIR="/home/odoo/.uv-python" \
