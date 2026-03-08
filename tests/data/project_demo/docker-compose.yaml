@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:${PYTEST_PG_VERSION:-9.3}-alpine
+    image: docker.io/library/postgres:${PYTEST_PG_VERSION:-9.3}-alpine
     networks:
       - dbnet
     environment:

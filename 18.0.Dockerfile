@@ -10,10 +10,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages
 ARG TARGETARCH \
     WKHTMLTOPDF_PKGS="libfreetype6 libjpeg62-turbo libpng16-16 libxcb1 libxext6 libxrender1 xfonts-75dpi xfonts-base" \
-    ODOO_PKGS="sassc fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev"
+    ODOO_PKGS="sassc fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev fonts-urw-base35 fonts-texgyre"
 
 # hadolint ignore=SC2086
-RUN set -eux; \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
     apt-get update && apt-get install -y --no-install-recommends \
         # Common
         fontconfig \
@@ -34,12 +36,25 @@ RUN set -eux; \
 
 # Install WKHTMLTOX
 ARG WKHTMLTOPDF_VERSION="0.12.6.1-3" \
+    WKHTMLTOPDF_SHA256_AMD64="98ba0d157b50d36f23bd0dedf4c0aa28c7b0c50fcdcdc54aa5b6bbba81a3941d" \
+    WKHTMLTOPDF_SHA256_ARM64="b6606157b27c13e044d0abbe670301f88de4e1782afca4f9c06a5817f3e03a9c" \
     WKHTMLTOPDF_BASE_DEBIAN_VER=bookworm
 
 RUN set -eux; \
     curl -L -o wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}.${WKHTMLTOPDF_BASE_DEBIAN_VER}_${TARGETARCH}.deb"; \
+    if [ "${TARGETARCH}" = "amd64" ]; then \
+        echo "${WKHTMLTOPDF_SHA256_AMD64}  wkhtmltox.deb" | sha256sum -c -; \
+    elif [ "${TARGETARCH}" = "arm64" ]; then \
+        echo "${WKHTMLTOPDF_SHA256_ARM64}  wkhtmltox.deb" | sha256sum -c -; \
+    else \
+        echo "ERROR: Arch $TARGETARCH not supported by wkhtmltox" >&2; \
+        exit 1; \
+    fi; \
     apt-get install --no-install-recommends -y ./wkhtmltox.deb; \
-    rm wkhtmltox.deb;
+    rm wkhtmltox.deb; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*;
 
 
 # Create the runtime user
@@ -50,6 +65,7 @@ ARG USER_ODOO_UID=7777 \
 RUN set -eux; \
     groupadd --gid "${USER_ODOO_GID}" --system odoo; \
     useradd \
+        --no-log-init \
         --home-dir /home/odoo \
         --system \
         --uid "${USER_ODOO_UID}" \
@@ -63,19 +79,27 @@ RUN set -eux; \
 # Change to runtime user
 USER odoo
 
+### SYSTEM PYTHON ENV
+WORKDIR /home/odoo
+
 
 # Install NodeJS & Depedencies
 ARG NVM_VERSION="v0.40.3" \
+    NVM_INSTALL_SHA256="2d8359a64a3cb07c02389ad88ceecd43f2fa469c06104f92f98df5b6f315275f" \
     NODE_VERSION="20.18.0" \
     ODOO_NPM_PKGS="rtlcss"
 
 # hadolint ignore=SC2086
 RUN set -ex; \
-    curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash; \
-    . ~/.nvm/nvm.sh; \
+    curl -o install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh"; \
+    echo "${NVM_INSTALL_SHA256}  install-nvm.sh" | sha256sum -c -; \
+    bash install-nvm.sh; \
+    rm install-nvm.sh; \
+    . /home/odoo/.nvm/nvm.sh; \
     nvm install "${NODE_VERSION}"; \
     nvm use "${NODE_VERSION}"; \
-    npm install -g ${ODOO_NPM_PKGS};
+    npm install -g ${ODOO_NPM_PKGS}; \
+    npm cache clean --force;
 
 
 # Install & activate UV
@@ -87,14 +111,12 @@ ENV PATH="/home/odoo/.local/bin:/home/odoo/.uv-python/bin:$PATH" \
     UV_LINK_MODE=copy \
     UV_NO_CACHE=1
 
-RUN set -eux; \
+RUN --mount=type=cache,target=/home/odoo/.uv-cache,sharing=locked \
+    set -eux; \
     curl -LsSf https://astral.sh/uv/install.sh | sh; \
     uv python install "${ODOO_PYTHON_VERSION}" --compile-bytecode; \
     uv python install "${SYSTEM_PYTHON_VERSION}" --compile-bytecode;
 
-
-### SYSTEM PYTHON ENV
-WORKDIR /home/odoo
 
 # Install System UV & Extra tools
 RUN set -eux; \
@@ -111,14 +133,12 @@ WORKDIR /opt/odoo
 
 # Install Odoo UV
 RUN set -eux; \
-    uv venv --python ${ODOO_PYTHON_VERSION}; \
-    . /opt/odoo/.venv/bin/activate;
+    uv venv --python ${ODOO_PYTHON_VERSION};
 
 
 # System Post-Configurations
 USER root
 
-COPY --chown=odoo:odoo recipes/18.0/overrides.txt /opt/odoo/overrides.txt
 COPY docker-entrypoint.sh /usr/local/sbin/
 COPY tools/exec_env.sh /usr/local/sbin/exec_env
 COPY tools/isodoo_generate_config.py /usr/local/sbin/isodoo_generate_config
@@ -147,7 +167,9 @@ USER odoo
 RUN set -ex; \
     . ~/.nvm/nvm.sh; \
     wkhtmltopdf --version; \
-    node --version;
+    node --version; \
+    /home/odoo/.venv/bin/python --version; \
+    /opt/odoo/.venv/bin/python --version;
 
 
 # Install Odoo + Extras
@@ -189,7 +211,9 @@ ONBUILD RUN set -ex; \
 
 ONBUILD USER root
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+            --mount=type=cache,target=/var/lib/apt,sharing=locked \
+            set -ex; \
             apt-get update; \
             xargs -r apt-get install -y --no-install-recommends < /opt/odoo/apt.txt; \
             apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
@@ -206,9 +230,8 @@ ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
             printf '#!/bin/bash\n/opt/odoo/git/odoo/odoo-bin "$@"' > /opt/odoo/.venv/bin/odoo; \
             chmod +x /opt/odoo/.venv/bin/odoo; \
-            mv /opt/odoo/overrides.txt .;\
-            uv pip install --no-binary psycopg2 -r requirements.txt --override overrides.txt; \
-            uv pip install -r /opt/odoo/pip.txt; \
+            uv pip install --no-cache-dir --no-binary psycopg2 -r requirements.txt; \
+            uv pip install --no-cache-dir -r /opt/odoo/pip.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \
             find .. -name "*.egg-info" -type d -exec rm -rf {} +; \

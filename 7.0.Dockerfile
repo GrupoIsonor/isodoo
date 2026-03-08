@@ -11,10 +11,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages
 ARG TARGETARCH \
     WKHTMLTOPDF_PKGS="libfreetype6 libjpeg62-turbo libpng16-16 libxcb1 libxext6 libxrender1 xfonts-75dpi xfonts-base" \
-    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev"
+    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev gsfonts fonts-urw-base35"
 
 # hadolint ignore=SC2086
-RUN set -eux; \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
     rm /etc/apt/sources.list; \
     echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list.d/buster.list; \
     echo "deb http://archive.debian.org/debian buster main" >> /etc/apt/sources.list.d/buster.list; \
@@ -38,14 +40,25 @@ RUN set -eux; \
 
 # Install WKHTMLTOX
 ARG WKHTMLTOPDF_VERSION="0.12.1.4-2" \
+    WKHTMLTOPDF_SHA256_AMD64="57d7cc7edfd91dfe984da401434cb17eea07b0fd6ffb9bd3311efd1805b7868f" \
+    WKHTMLTOPDF_SHA256_ARM64="" \
     WKHTMLTOPDF_BASE_DEBIAN_VER=buster
 
 WORKDIR /tmp
 
 RUN set -eux; \
     curl -L -o wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}.${WKHTMLTOPDF_BASE_DEBIAN_VER}_${TARGETARCH}.deb"; \
+    if [ "${TARGETARCH}" = "amd64" ]; then \
+        echo "${WKHTMLTOPDF_SHA256_AMD64}  wkhtmltox.deb" | sha256sum -c -; \
+    else \
+        echo "ERROR: Arch $TARGETARCH not supported by wkhtmltox" >&2; \
+        exit 1; \
+    fi; \
     apt-get install --no-install-recommends -y ./wkhtmltox.deb; \
-    rm wkhtmltox.deb;
+    rm wkhtmltox.deb; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*;
 
 
 # Create the runtime user
@@ -56,6 +69,7 @@ ARG USER_ODOO_UID=7777 \
 RUN set -eux; \
     groupadd --gid "${USER_ODOO_GID}" --system odoo; \
     useradd \
+        --no-log-init \
         --home-dir /home/odoo \
         --system \
         --uid "${USER_ODOO_UID}" \
@@ -152,7 +166,10 @@ USER odoo
 
 # Verifications
 RUN set -ex; \
-    wkhtmltopdf --version;
+    wkhtmltopdf --version; \
+    python3 --version; \
+    /home/odoo/.venv/bin/python --version; \
+    /opt/odoo/.venv/bin/python --version;
 
 
 # Install Odoo + Extras
@@ -189,7 +206,9 @@ ONBUILD WORKDIR /opt/odoo
 
 ONBUILD USER root
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+            --mount=type=cache,target=/var/lib/apt,sharing=locked \
+            set -ex; \
             apt-get update; \
             xargs -r apt-get install -y --no-install-recommends < /opt/odoo/apt.txt; \
             apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \

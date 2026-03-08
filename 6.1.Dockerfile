@@ -9,10 +9,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system packages
 ARG TARGETARCH \
-    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev"
+    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev gsfonts fonts-urw-base35"
 
 # hadolint ignore=SC2086
-RUN set -eux; \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
     rm /etc/apt/sources.list; \
     echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list.d/buster.list; \
     echo "deb http://archive.debian.org/debian buster main" >> /etc/apt/sources.list.d/buster.list; \
@@ -41,6 +43,7 @@ ARG USER_ODOO_UID=7777 \
 RUN set -eux; \
     groupadd --gid "${USER_ODOO_GID}" --system odoo; \
     useradd \
+        --no-log-init \
         --home-dir /home/odoo \
         --system \
         --uid "${USER_ODOO_UID}" \
@@ -171,7 +174,9 @@ ONBUILD COPY --from=addons --chown=odoo:odoo addons.yaml /opt/odoo/addons.yaml
 
 ONBUILD USER root
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+            --mount=type=cache,target=/var/lib/apt,sharing=locked \
+            set -ex; \
             apt-get update; \
             cat /opt/odoo/apt.txt | apt-get install -y --no-install-recommends; \
             apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
@@ -192,7 +197,9 @@ ONBUILD WORKDIR /opt/odoo
 
 ONBUILD USER root
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+            --mount=type=cache,target=/var/lib/apt,sharing=locked \
+            set -ex; \
             apt-get update; \
             xargs -r apt-get install -y --no-install-recommends < /opt/odoo/apt.txt; \
             apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
