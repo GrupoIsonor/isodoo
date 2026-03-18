@@ -26,6 +26,7 @@ PG_VERSIONS = {
     "18.0": "17",
     "19.0": "18",
 }
+OLDER_VERSIONS = ("6.0", "6.1", "7.0", "8.0", "9.0", "10.0")
 
 
 def _podman_execute(service: str, command: list[str], tty: bool = False) -> str:
@@ -241,6 +242,21 @@ def docker_env(env_info):
     )
 
     # Initialize Database
+    init_params = [
+        "odoo",
+        "-c",
+        "/etc/odoo/odoo.conf",
+        "-i",
+        "base",
+        "--stop-after-init",
+    ]
+    if odoo_ver != "6.0":
+        init_params += [
+            "--max-cron-threads",
+            "0",
+            "--no-xmlrpc" if odoo_ver in OLDER_VERSIONS else "--no-http",
+        ]
+
     if client_type == "podman":
         subprocess.run(
             [
@@ -251,16 +267,8 @@ def docker_env(env_info):
                 "run",
                 "--rm",
                 "odoo",
-                "odoo",
-                "-c",
-                "/etc/odoo/odoo.conf",
-                "-i",
-                "base",
-                "--stop-after-init",
-                "--no-http",
-                "--max-cron-threads",
-                "0",
-            ],
+            ]
+            + init_params,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -270,17 +278,7 @@ def docker_env(env_info):
     else:
         docker.compose.run(
             "odoo",
-            [
-                "odoo",
-                "-c",
-                "/etc/odoo/odoo.conf",
-                "-i",
-                "base",
-                "--stop-after-init",
-                "--no-http",
-                "--max-cron-threads",
-                "0",
-            ],
+            init_params,
             remove=True,
         )
 
