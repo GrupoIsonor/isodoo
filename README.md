@@ -21,10 +21,10 @@ A lightweight image for running Odoo from 6.0 to the moon! Strongly inspired by 
 - Installation from source code
 - Detect missing modules at build time
 - Automatically obtains and downloads modules external dependencies
-- Strong use of virtual environments (using UV in 14.0+)
+- Strong use of virtual environments (using [uv](https://docs.astral.sh/uv/) in 14.0+)
 - [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib)
 - [git-aggregator](https://github.com/acsone/git-aggregator)
-- Compatible with podman (using --format docker)
+- Compatible with [podman](https://podman.io/) (using --format docker)
 
 ## :page_facing_up: Documentation
 
@@ -69,6 +69,15 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 
 ** Check the Dockerfile for more configuration variables/args.
 
+### Additional Context
+
+| Name | Content | Required | Description |
+|----------------|-------------|-------------|------------- |
+| deps | apt.txt - pip.txt - npm.txt | Yes | Contains the files that define the necessary dependencies |
+| addons | repos.yaml - addons.yaml | Yes | Contains the files that define the available add-ons |
+| private | add-ons folders | No | Contains the private add-ons |
+
+** Example: https://github.com/GrupoIsonor/isodoo/tree/master/tests/data/project_demo/v19.0
 
 ### Default Ports
 
@@ -79,8 +88,27 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | 8072 | 6.0+ | Port for long polling (real-time notifications, such as chat) |
 | 8080 | 6.0 | [6.0 Only] Default port for HTTP and XML-RPC (web interface and API) |
 
+---
+<div align="center"><h2>Usage Example</h2></div>
 
-### Custom Dockerfile
+### Folder Tree
+```
+myproject/
+  - Dockerfile
+  - docker-compose.yaml
+  - deps/
+    - pip.txt
+    - apt.txt
+    - npm.txt
+  - addons/
+    - addons.yaml
+    - repos.yaml
+  - private/
+    - my_module_a/
+    - my_module_b/
+```
+
+### Dockerfile
 ```Dockerfile
 ARG ODOO_VERSION
 FROM ghcr.io/grupoisonor/isodoo:${ODOO_VERSION} AS isodoo-runtime
@@ -89,7 +117,7 @@ COPY --from=private --chown=odoo:odoo / /var/lib/odoo/private
 ENV OCONF__options__addons_path="${OCONF__options__addons_path},/var/lib/odoo/private"
 ```
 
-### Docker Compose
+### docker-compose.yaml
 ```yml
 services:
   odoo:
