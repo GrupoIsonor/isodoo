@@ -152,11 +152,11 @@ def pytest_addoption(parser):
 def env_info(pytestconfig):
     no_cache = bool(pytestconfig.getoption("no_cache", False))
     odoo_ver = pytestconfig.getoption("odoo_version")
-    client_type = pytestconfig.getoption("client_type", _get_preferred_client_type())
+    client_type = pytestconfig.getoption("client_type") or _get_preferred_client_type()
     odoo_port = "8080" if odoo_ver == "6.0" else "8069"
 
     return {
-        "ip": "127.0.0.1",  # if client_type == 'podman' else "10.99.2.38",
+        "ip": "127.0.0.1",
         "ports": {
             "odoo": odoo_port,
         },
