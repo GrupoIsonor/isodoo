@@ -121,7 +121,7 @@ def _get_preferred_client_type():
     if shutil.which("podman"):
         return "podman"
     if shutil.which("docker"):
-        return None
+        return "docker"
     raise RuntimeError("Need install podman or docker (with compose)")
 
 
@@ -174,7 +174,7 @@ def docker_env(env_info):
     os.environ["PYTEST_ODOO_VERSION"] = odoo_ver
     os.environ["PYTEST_PG_VERSION"] = PG_VERSIONS[odoo_ver]
     client_type = env_info["client_type"]
-    client_call = [client_type] if client_type else None
+    client_call = [client_type]
     # isOdoo Base
     if client_type == "podman":
         os.environ["PODMAN_COMPOSE_PROVIDER"] = "/usr/bin/podman-compose"

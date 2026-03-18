@@ -24,6 +24,7 @@ A lightweight image for running Odoo from 6.0 to the moon! Strongly inspired by 
 - Strong use of virtual environments (using UV in 14.0+)
 - [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib)
 - [git-aggregator](https://github.com/acsone/git-aggregator)
+- Compatible with podman (using --format docker)
 
 ## :page_facing_up: Documentation
 
