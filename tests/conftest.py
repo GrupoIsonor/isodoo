@@ -7,7 +7,8 @@ import subprocess
 from pathlib import Path
 from python_on_whales import DockerClient
 
-IMAGE_TAG_NAME = "test:docker-isodoo"
+IMAGE_TAG_NAME = "localhost/test:docker-isodoo"
+COMPOSE_PROJECT_NAME = "isodoo-test"
 PG_VERSIONS = {
     "6.0": "9.3",
     "6.1": "9.3",
@@ -27,12 +28,44 @@ PG_VERSIONS = {
 }
 
 
+def _podman_execute(service: str, command: list[str], tty: bool = False) -> str:
+    podman_cmd = ["podman", "compose", "-p", COMPOSE_PROJECT_NAME, "exec"]
+
+    if tty:
+        podman_cmd.extend(["-it"])
+    else:
+        podman_cmd.append("-T")
+
+    podman_cmd.append(service)
+    podman_cmd.extend(command)
+
+    result = subprocess.run(
+        podman_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+
+    output = result.stdout
+
+    clean_lines = [
+        line
+        for line in output.splitlines(keepends=True)
+        if "The input device is not a TTY" not in line
+    ]
+    clean_output = "".join(clean_lines)
+
+    return clean_output
+
+
 def _podman_build(
     context_path,
     file=None,
     tags=None,
     cache=True,
     pull=True,
+    build_args=None,
     extra_args=None,
 ):
     context_path = Path(context_path).resolve()
@@ -53,6 +86,16 @@ def _podman_build(
         cmd.append("--no-cache")
     if pull:
         cmd.append("--pull")
+
+    if build_args:
+        if isinstance(build_args, dict):
+            for key, value in build_args.items():
+                cmd.extend(["--build-arg", f"{key}={value}"])
+        elif isinstance(build_args, str):
+            cmd.extend(["--build-arg", build_args])
+        else:
+            for arg in build_args:
+                cmd.extend(["--build-arg", str(arg)])
 
     if extra_args:
         cmd.extend(extra_args)
@@ -109,11 +152,11 @@ def pytest_addoption(parser):
 def env_info(pytestconfig):
     no_cache = bool(pytestconfig.getoption("no_cache", False))
     odoo_ver = pytestconfig.getoption("odoo_version")
-    client_type = pytestconfig.getoption("client_type")
+    client_type = pytestconfig.getoption("client_type", _get_preferred_client_type())
     odoo_port = "8080" if odoo_ver == "6.0" else "8069"
 
     return {
-        "ip": "10.99.2.38",
+        "ip": "127.0.0.1",  # if client_type == 'podman' else "10.99.2.38",
         "ports": {
             "odoo": odoo_port,
         },
@@ -121,7 +164,7 @@ def env_info(pytestconfig):
             "no_cache": no_cache,
             "odoo_version": odoo_ver,
         },
-        "client_type": client_type or _get_preferred_client_type(),
+        "client_type": client_type,
     }
 
 
@@ -134,6 +177,8 @@ def docker_env(env_info):
     client_call = [client_type] if client_type else None
     # isOdoo Base
     if client_type == "podman":
+        os.environ["PODMAN_COMPOSE_PROVIDER"] = "/usr/bin/podman-compose"
+        os.environ["PODMAN_COMPOSE_WARNING_LOGS"] = "false"
         _podman_build(
             ".",
             file=f"./{odoo_ver}.Dockerfile",
@@ -151,38 +196,106 @@ def docker_env(env_info):
 
     os.chdir("./tests/data/project_demo")
     # isOdoo Runtime
+    if client_type == "podman":
+        _podman_build(
+            ".",
+            file=f"./Dockerfile",
+            tags=f"{IMAGE_TAG_NAME}-demo-{odoo_ver}",
+            cache=not env_info["options"]["no_cache"],
+            build_args={
+                "ODOO_VERSION": odoo_ver,
+            },
+            extra_args=[
+                "--pull=never",
+                "--build-context",
+                f"deps=./v{odoo_ver}/deps",
+                "--build-context",
+                f"addons=./v{odoo_ver}/addons",
+                "--build-context",
+                f"private=./v{odoo_ver}/private",
+            ],
+        )
+    else:
+        docker = DockerClient(client_call=client_call, client_type=client_type)
+        docker.build(
+            ".",
+            file=f"./Dockerfile",
+            tags=f"{IMAGE_TAG_NAME}-demo-{odoo_ver}",
+            cache=not env_info["options"]["no_cache"],
+            build_args={
+                "ODOO_VERSION": odoo_ver,
+            },
+            pull=False,
+            build_contexts={
+                "deps": f"./v{odoo_ver}/deps",
+                "addons": f"./v{odoo_ver}/addons",
+                "private": f"./v{odoo_ver}/private",
+            },
+        )
+
     docker = DockerClient(
         client_call=client_call,
         client_type=client_type,
         compose_files=["docker-compose.yaml"],
-        compose_project_name="isodoo-test",
-    )
-    docker.compose.build(
-        "odoo",
-        cache=not env_info["options"]["no_cache"],
-        build_args={
-            "ODOO_VERSION": odoo_ver,
-        },
+        compose_project_name=COMPOSE_PROJECT_NAME,
     )
 
     # Initialize Database
-    docker.compose.run(
-        "odoo",
-        [
+    if client_type == "podman":
+        subprocess.run(
+            [
+                "podman",
+                "compose",
+                "-p",
+                COMPOSE_PROJECT_NAME,
+                "run",
+                "--rm",
+                "odoo",
+                "odoo",
+                "-c",
+                "/etc/odoo/odoo.conf",
+                "-i",
+                "base",
+                "--stop-after-init",
+                "--no-http",
+                "--max-cron-threads",
+                "0",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=60,
+            check=True,
+        )
+    else:
+        docker.compose.run(
             "odoo",
-            "-c",
-            "/etc/odoo/odoo.conf",
-            "-i",
-            "base",
-            "--stop-after-init",
-        ],
-    )
+            [
+                "odoo",
+                "-c",
+                "/etc/odoo/odoo.conf",
+                "-i",
+                "base",
+                "--stop-after-init",
+                "--no-http",
+                "--max-cron-threads",
+                "0",
+            ],
+            remove=True,
+        )
 
     # Up Services
-    docker.compose.up(
-        detach=True,
-        remove_orphans=True,
-    )
+    if client_type == "podman":
+        subprocess.Popen(
+            ["podman", "compose", "-p", COMPOSE_PROJECT_NAME, "up", "--remove-orphans"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    else:
+        docker.compose.up(
+            detach=True,
+            remove_orphans=True,
+        )
 
     print("Waiting Odoo...")
     _wait_for_odoo(env_info["ip"], env_info["ports"]["odoo"])
@@ -194,10 +307,13 @@ def docker_env(env_info):
 
 
 @pytest.fixture(scope="session")
-def exec_docker(docker_env):
+def exec_docker(docker_env, env_info):
     def _run(env, args):
         args_str = " ".join(args)
         exec_cmd = f"exec_env {env} {args_str} 2>&1"
+        client_type = env_info["client_type"]
+        if client_type == "podman":
+            return _podman_execute("odoo", ["sh", "-c", exec_cmd], tty=False)
         return docker_env.compose.execute("odoo", ["sh", "-c", exec_cmd], tty=False)
 
     return _run

@@ -82,7 +82,7 @@ WORKDIR /home/odoo
 
 # Install System PIP & Extra dependencies
 RUN set -eux; \
-    "$PYTHON_SYSTEM_BIN_NAME" -m venv ~/.venv; \
+    "$PYTHON_SYSTEM_BIN_NAME" -m venv /home/odoo/.venv; \
     . .venv/bin/activate; \
     pip install --no-cache-dir --upgrade pip; \
     pip install --no-cache-dir click-odoo-contrib git-aggregator pyyaml psycopg2; \
@@ -189,7 +189,7 @@ ONBUILD WORKDIR /opt/odoo/git
 
 ONBUILD RUN set -ex; \
             isodoo_update_addons; \
-            . ~/.venv/bin/activate; \
+            . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \
             deactivate;
 

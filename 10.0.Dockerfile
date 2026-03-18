@@ -85,6 +85,7 @@ WORKDIR /home/odoo
 
 # Install NodeJS & Depedencies
 ARG NVM_VERSION="v0.40.3" \
+    NVM_DIR=/home/odoo/.nvm \
     NVM_INSTALL_SHA256="2d8359a64a3cb07c02389ad88ceecd43f2fa469c06104f92f98df5b6f315275f" \
     NODE_VERSION="4.9.1" \
     ODOO_NPM_PKGS="rtlcss less@2.5.3 less-plugin-clean-css"
@@ -95,7 +96,7 @@ RUN set -ex; \
     echo "${NVM_INSTALL_SHA256}  install-nvm.sh" | sha256sum -c -; \
     bash install-nvm.sh; \
     rm install-nvm.sh; \
-    . /home/odoo/.nvm/nvm.sh; \
+    . "${NVM_DIR}/nvm.sh"; \
     nvm install "${NODE_VERSION}"; \
     nvm use "${NODE_VERSION}"; \
     npm install -g ${ODOO_NPM_PKGS}; \
@@ -123,7 +124,7 @@ RUN set -eux; \
 
 # Install System PIP & Extra dependencies
 RUN set -eux; \
-    "$PYTHON_SYSTEM_BIN_NAME" -m venv ~/.venv; \
+    "$PYTHON_SYSTEM_BIN_NAME" -m venv /home/odoo/.venv; \
     . .venv/bin/activate; \
     pip install --no-cache-dir --upgrade pip; \
     pip install --no-cache-dir click-odoo-contrib git-aggregator pyyaml psycopg2; \
@@ -174,7 +175,7 @@ USER odoo
 
 # Verifications
 RUN set -ex; \
-    . ~/.nvm/nvm.sh; \
+    . "${NVM_DIR}/nvm.sh"; \
     wkhtmltopdf --version; \
     node --version; \
     /home/odoo/.venv/bin/python --version; \
@@ -187,6 +188,7 @@ ONBUILD ARG EXT_DEPS_OVERRIDES='' \
             AUTO_DOWNLOAD_DEPENDENCIES=true
 ONBUILD ENV LC_ALL="C.UTF-8" \
             LANG="C.UTF-8" \
+            NVM_DIR=/home/odoo/.nvm \
             GIT_DEPTH_NORMAL=1 \
             GIT_DEPTH_MERGE=500 \
             EXT_DEPS_OVERRIDES="openid:python-openid,ldap:python-ldap,evdev:evdev==1.5.0,usb.core:pyusb,${EXT_DEPS_OVERRIDES}" \
@@ -208,14 +210,14 @@ ONBUILD WORKDIR /opt/odoo/git
 
 ONBUILD RUN set -ex; \
             isodoo_update_addons; \
-            . ~/.venv/bin/activate; \
+            . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \
             deactivate;
 
 ONBUILD WORKDIR /opt/odoo
 
 ONBUILD RUN set -ex; \
-            . ~/.nvm/nvm.sh; \
+            . "${NVM_DIR}/nvm.sh"; \
             xargs -r npm install -g < /opt/odoo/npm.txt;
 
 ONBUILD USER root

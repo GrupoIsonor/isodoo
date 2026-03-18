@@ -1,6 +1,8 @@
 services:
   db:
     image: docker.io/library/postgres:${PYTEST_PG_VERSION:-9.3}-alpine
+    tty: false
+    stdin_open: false
     networks:
       - dbnet
     environment:
@@ -17,12 +19,10 @@ services:
       start_period: 30s
 
   odoo:
-    build:
-      context: .
-      additional_contexts:
-        deps: ./v${PYTEST_ODOO_VERSION:-6.0}/deps
-        addons: ./v${PYTEST_ODOO_VERSION:-6.0}/addons
-        private: ./v${PYTEST_ODOO_VERSION:-6.0}/private
+    image: localhost/test:docker-isodoo-demo-${PYTEST_ODOO_VERSION:-6.0}
+    pull_policy: never
+    tty: false
+    stdin_open: false
     depends_on:
       db:
         condition: service_healthy
@@ -31,7 +31,6 @@ services:
       - '8069:8069'
     networks:
       frontend:
-        ipv4_address: 10.99.2.38
       dbnet:
     environment:
       OCONF__options__log_level: debug
@@ -42,13 +41,12 @@ services:
       OCONF__options__db_name: odoodb
       OCONF__options__proxy_mode: false
       OCONF__options__workers: 0
+      OCONF__options__max_cron_threads: 0
+      OCONF__options__without_demo: all
     hostname: odoo
 
 
 networks:
   frontend:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 10.99.0.0/16
   dbnet:
