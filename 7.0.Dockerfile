@@ -67,11 +67,10 @@ ARG USER_ODOO_UID=7777 \
 
 # hadolint ignore=SC2153
 RUN set -eux; \
-    groupadd --gid "${USER_ODOO_GID}" --system odoo; \
+    groupadd --gid "${USER_ODOO_GID}" odoo; \
     useradd \
         --no-log-init \
         --home-dir /home/odoo \
-        --system \
         --uid "${USER_ODOO_UID}" \
         --gid "${USER_ODOO_GID}" \
         -s /bin/bash \
@@ -119,11 +118,13 @@ RUN set -eux; \
 ### ODOO PYTHON ENV
 WORKDIR /opt/odoo
 
-ARG ODOO_EXTRA_PIP_PKGS="pyinotify"
-
 # Install Odoo PIP & Extra dependencies
+ARG ODOO_EXTRA_PIP_PKGS="pyinotify" \
+    PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
+
 RUN set -eux; \
     curl -L -o get-pip.py "https://bootstrap.pypa.io/pip/${ODOO_PYTHON_VERSION}/get-pip.py"; \
+    echo "${PIP_SHA256}  get-pip.py" | sha256sum -c -; \
     "$PYTHON_ODOO_BIN_NAME" get-pip.py; \
     rm -f get-pip.py; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir --upgrade pip; \
@@ -196,7 +197,7 @@ ONBUILD USER odoo
 
 ONBUILD WORKDIR /opt/odoo/git
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             isodoo_update_addons; \
             . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \

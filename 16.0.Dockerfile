@@ -63,11 +63,10 @@ ARG USER_ODOO_UID=7777 \
 
 # hadolint ignore=SC2153
 RUN set -eux; \
-    groupadd --gid "${USER_ODOO_GID}" --system odoo; \
+    groupadd --gid "${USER_ODOO_GID}" odoo; \
     useradd \
         --no-log-init \
         --home-dir /home/odoo \
-        --system \
         --uid "${USER_ODOO_UID}" \
         --gid "${USER_ODOO_GID}" \
         -s /bin/bash \
@@ -91,7 +90,7 @@ ARG NVM_VERSION="v0.40.3" \
     ODOO_NPM_PKGS="rtlcss"
 
 # hadolint ignore=SC2086
-RUN set -ex; \
+RUN set -eux; \
     curl -o install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh"; \
     echo "${NVM_INSTALL_SHA256}  install-nvm.sh" | sha256sum -c -; \
     bash install-nvm.sh; \
@@ -166,7 +165,7 @@ USER odoo
 
 
 # Verifications
-RUN set -ex; \
+RUN set -eux; \
     . "${NVM_DIR}/nvm.sh"; \
     wkhtmltopdf --version; \
     node --version; \
@@ -200,7 +199,7 @@ ONBUILD USER odoo
 
 ONBUILD WORKDIR /opt/odoo/git
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             isodoo_update_addons; \
             . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \

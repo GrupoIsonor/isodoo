@@ -41,11 +41,10 @@ ARG USER_ODOO_UID=7777 \
 
 # hadolint ignore=SC2153
 RUN set -eux; \
-    groupadd --gid "${USER_ODOO_GID}" --system odoo; \
+    groupadd --gid "${USER_ODOO_GID}" odoo; \
     useradd \
         --no-log-init \
         --home-dir /home/odoo \
-        --system \
         --uid "${USER_ODOO_UID}" \
         --gid "${USER_ODOO_GID}" \
         -s /bin/bash \
@@ -95,10 +94,12 @@ WORKDIR /opt/odoo
 
 
 # Install Odoo PIP & Extra dependencies
-ARG ODOO_EXTRA_PIP_PKGS="pyinotify"
+ARG ODOO_EXTRA_PIP_PKGS="pyinotify" \
+    PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
 
 RUN set -eux; \
     curl -L -o get-pip.py "https://bootstrap.pypa.io/pip/${ODOO_PYTHON_VERSION}/get-pip.py"; \
+    echo "${PIP_SHA256}  get-pip.py" | sha256sum -c -; \
     "$PYTHON_ODOO_BIN_NAME" get-pip.py; \
     rm -f get-pip.py; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir --upgrade pip; \
@@ -144,7 +145,8 @@ ONBUILD ARG EXT_DEPS_OVERRIDES='' \
             ODOO_VERSION="6.0" \
             ODOO_WEB_VERSION="6.0.4" \
             ODOO_WEB_VERSION_PACKAGE="20171009-r4929" \
-            AUTO_DOWNLOAD_DEPENDENCIES=true \
+            ODOO_WEB_SHA256="83a44ddb224b203b9ee1c1af03cc4319d9dd87b02ae1eb80e8af824ea8a98f26" \
+            AUTO_DOWNLOAD_DEPENDENCIES=true
 ONBUILD ENV LC_ALL="C.UTF-8" \
             LANG="C.UTF-8" \
             GIT_DEPTH_NORMAL=1 \
@@ -165,7 +167,7 @@ ONBUILD USER odoo
 
 ONBUILD WORKDIR /opt/odoo/git
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             isodoo_update_addons; \
             . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \
@@ -173,8 +175,9 @@ ONBUILD RUN set -ex; \
 
 ONBUILD WORKDIR /opt/odoo
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             curl -L -o oweb.tar.gz "https://nightly.odoo.com/old/openerp-${ODOO_VERSION}/nightly/openerp-web-${ODOO_WEB_VERSION}-${ODOO_WEB_VERSION_PACKAGE}.tar.gz"; \
+            echo "${ODOO_WEB_SHA256}  oweb.tar.gz" | sha256sum -c -; \
             tar -xvf oweb.tar.gz; \
             chmod +x "/opt/odoo/openerp-web-${ODOO_WEB_VERSION}/openerp-web.py"; \
             rm -f oweb.tar.gz;
@@ -196,7 +199,7 @@ ONBUILD USER odoo
 ONBUILD WORKDIR /opt/odoo/git/odoo
 
 # hadolint ignore=SC2086,DL3042
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             . /opt/odoo/.venv/bin/activate; \
             printf '#!/bin/bash\n/opt/odoo/git/odoo/bin/openerp-server.py "$@"' > /opt/odoo/.venv/bin/odoo; \
             chmod +x ${VIRTUAL_ENV}/bin/odoo; \
@@ -218,7 +221,7 @@ ONBUILD RUN set -ex; \
 ONBUILD WORKDIR /opt/odoo/openerp-web-$ODOO_WEB_VERSION
 
 # hadolint ignore=SC2086
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             . /opt/odoo/.venv/bin/activate; \
             cat doc/openerp-web.cfg > /etc/odoo/openerp-web.cfg; \
             printf "#!/bin/bash\n/opt/odoo/openerp-web-${ODOO_WEB_VERSION}/openerp-web.py \"\$@\"\n" > ${VIRTUAL_ENV}/bin/openerp-web; \

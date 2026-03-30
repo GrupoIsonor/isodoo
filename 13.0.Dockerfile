@@ -63,11 +63,10 @@ ARG USER_ODOO_UID=7777 \
 
 # hadolint ignore=SC2153
 RUN set -eux; \
-    groupadd --gid "${USER_ODOO_GID}" --system odoo; \
+    groupadd --gid "${USER_ODOO_GID}" odoo; \
     useradd \
         --no-log-init \
         --home-dir /home/odoo \
-        --system \
         --uid "${USER_ODOO_UID}" \
         --gid "${USER_ODOO_GID}" \
         -s /bin/bash \
@@ -91,7 +90,7 @@ ARG NVM_VERSION="v0.40.3" \
     ODOO_NPM_PKGS="rtlcss less@3.10.3 less-plugin-clean-css"
 
 # hadolint ignore=SC2086
-RUN set -ex; \
+RUN set -eux; \
     curl -o install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh"; \
     echo "${NVM_INSTALL_SHA256}  install-nvm.sh" | sha256sum -c -; \
     bash install-nvm.sh; \
@@ -136,8 +135,11 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo PIP & Extra dependencies
+ARG PIP_SHA256="6ed6e98282a504ee0a6632856e16c39f222d313fc38be33de216d4afb6ac12f7"
+
 RUN set -eux; \
     curl -L -o get-pip.py "https://bootstrap.pypa.io/pip/${ODOO_PYTHON_VERSION}/get-pip.py"; \
+    echo "${PIP_SHA256}  get-pip.py" | sha256sum -c -; \
     "$PYTHON_ODOO_BIN_NAME" get-pip.py; \
     rm -f get-pip.py; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir --upgrade pip; \
@@ -173,7 +175,7 @@ USER odoo
 
 
 # Verifications
-RUN set -ex; \
+RUN set -eux; \
     . "${NVM_DIR}/nvm.sh"; \
     wkhtmltopdf --version; \
     node --version; \
@@ -207,7 +209,7 @@ ONBUILD USER odoo
 
 ONBUILD WORKDIR /opt/odoo/git
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             isodoo_update_addons; \
             . /home/odoo/.venv/bin/activate; \
             [ "$AUTO_DOWNLOAD_DEPENDENCIES" = true ] && isodoo_auto_fill_external_dependencies; \
@@ -215,7 +217,7 @@ ONBUILD RUN set -ex; \
 
 ONBUILD WORKDIR /opt/odoo
 
-ONBUILD RUN set -ex; \
+ONBUILD RUN set -eux; \
             . "${NVM_DIR}/nvm.sh"; \
             xargs -r npm install -g < /opt/odoo/npm.txt;
 

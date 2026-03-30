@@ -1,10 +1,17 @@
 #!/bin/bash
 # Copyright  Alexandre Díaz <dev@redneboa.es>
+set -euo pipefail
 
 . ~/.venv/bin/activate
 cd /opt/odoo/git
-[ "$AUTO_FILL_REPOS" = true ] && isodoo_auto_fill_repos
-gitaggregate -c /opt/odoo/repos.auto.yaml --expand-env
+
+if [ "$AUTO_FILL_REPOS" = true ]; then
+    isodoo_auto_fill_repos
+    gitaggregate -c /opt/odoo/repos.auto.yaml --expand-env
+else
+    gitaggregate -c /opt/odoo/repos.yaml --expand-env
+fi
+
 chmod +x /opt/odoo/git/odoo/bin/openerp-server.py 2>/dev/null || true
 chmod +x /opt/odoo/git/odoo/odoo-bin 2>/dev/null || true
 isodoo_create_addons_symlinks
