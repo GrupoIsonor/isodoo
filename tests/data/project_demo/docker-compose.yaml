@@ -3,8 +3,6 @@ services:
     image: docker.io/library/postgres:${PYTEST_PG_VERSION:-9.3}-alpine
     tty: false
     stdin_open: false
-    networks:
-      - dbnet
     environment:
       POSTGRES_DB: odoodb
       POSTGRES_PASSWORD: odoo
@@ -27,11 +25,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - '8080:8080'
-      - '8069:8069'
-    networks:
-      frontend:
-      dbnet:
+      - '127.0.0.1:8080:8080'
+      - '127.0.0.1:8069:8069'
     environment:
       OCONF__options__log_level: debug
       OCONF__options__db_filter: odoodb$
@@ -44,9 +39,3 @@ services:
       OCONF__options__max_cron_threads: 0
       OCONF__options__without_demo: all
     hostname: odoo
-
-
-networks:
-  frontend:
-    driver: bridge
-  dbnet:

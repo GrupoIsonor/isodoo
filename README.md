@@ -133,10 +133,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - '8069:8069'
-    networks:
-      - frontend
-      - dbnet
+      - '127.0.0.1:8069:8069'
     environment:
       OCONF__options__log_level: debug
       OCONF__options__db_filter: odoodb$
@@ -151,8 +148,6 @@ services:
 
   db:
     image: postgres:18.0-alpine
-    networks:
-      - dbnet
     environment:
       POSTGRES_DB: odoodb
       POSTGRES_PASSWORD: odoo
@@ -172,8 +167,4 @@ services:
 volumes:
   filestore:
   db:
-
-networks:
-  frontend:
-  dbnet:
 ```
