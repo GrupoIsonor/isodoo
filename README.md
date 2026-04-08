@@ -11,7 +11,7 @@ ISO 0doo (By <a src="https://www.grupoisonor.es/">Grupo Isonor</a>)
 <p align="center">
 *** PROJECT UNDER DEVELOPMENT. NOT READY FOR PRODUCTION ***
 
-A lightweight image for running [Odoo](https://www.odoo.com/) from 6.0 to the moon! Strongly inspired by the [Doodba project](https://github.com/Tecnativa/doodba/) and the official [Odoo image](https://github.com/odoo/docker).
+A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the moon! Strongly inspired by the [Doodba project](https://github.com/Tecnativa/doodba/) and the official [Odoo image](https://github.com/odoo/docker).
 </p>
 
 ---
@@ -89,7 +89,7 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | 8080 | 6.0 | [6.0 Only] Default port for HTTP and XML-RPC (web interface and API) |
 
 ---
-<div align="center"><h2>Usage Example</h2></div>
+<div align="center"><h2>Very Basic Usage Example</h2></div>
 
 ### Folder Tree
 ```
