@@ -66,6 +66,7 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | EXT_DEPS_OVERRIDES | Overrides for the dependency names (old_name:new_name) separated by commas (Only useful if AUTO_DOWNLOAD_DEPENDENCIES is used) | No | "" |
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
+| PSQL_WAIT_TIMEOUT | Timeout to wait for the database | No | 30 |
 
 ** Check the Dockerfile for more configuration variables/args.
 
@@ -143,7 +144,7 @@ services:
       OCONF__options__db_name: odoodb
       OCONF__options__proxy_mode: false
     volumes:
-      - filestore:/var/lib/odoo/data:z
+      - filestore:/var/lib/odoo/data
     hostname: odoo
 
   db:
@@ -154,7 +155,7 @@ services:
       POSTGRES_USER: odoo
       POSTGRES_INITDB_ARGS: --locale=C --encoding=UTF8
     volumes:
-      - db:/var/lib/postgresql:z
+      - db:/var/lib/postgresql
     hostname: odoo-db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U odoo -d odoodb"]
