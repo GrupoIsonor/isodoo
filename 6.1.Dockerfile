@@ -93,7 +93,7 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo PIP & Extra dependencies
-ARG ODOO_EXTRA_PIP_PKGS="pyinotify click-odoo click-odoo-contrib" \
+ARG ODOO_EXTRA_PIP_PKGS="pyinotify" \
     PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
 
 RUN set -eux; \
@@ -218,10 +218,16 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/openerp-server "$@"' > /opt/odoo/.venv/bin/odoo; \
-            chmod +x /opt/odoo/.venv/bin/odoo; \
+            # Install Outdated dependencies
+            git clone https://github.com/Infinite-Code/PyChart --depth=1; \
+            cd PyChart; \
+            python setup.py install; \
+            cd ..; \
+            rm -rf PyChart; \
+            # Install OpenERP
             mv /opt/odoo/requirements.txt .;\
             pip install --no-binary psycopg2 -r requirements.txt; \
+            python setup.py install; \
             pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
@@ -232,6 +238,8 @@ ONBUILD RUN set -ex; \
             # Post-configurations
             python -m compileall /var/lib/odoo/core; \
             python -m compileall /var/lib/odoo/extra; \
+            ln -s /opt/odoo/.venv/bin/openerp-server /opt/odoo/.venv/bin/odoo; \
+            chmod +x /opt/odoo/.venv/bin/odoo; \
             # Ensure all is working
             odoo --version; \
             deactivate;

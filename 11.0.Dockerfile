@@ -248,13 +248,12 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/odoo-bin "$@"' > /opt/odoo/.venv/bin/odoo; \
-            chmod +x /opt/odoo/.venv/bin/odoo; \
             # Hard-Change pinned versions
             sed -i \
                 -e '/^pytz==/c\pytz>=2025.2' \
                 requirements.txt; \
             pip install --no-binary psycopg2 -r requirements.txt; \
+            python setup.py install; \
             pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \

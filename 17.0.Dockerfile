@@ -234,10 +234,8 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/odoo-bin "$@"' > /opt/odoo/.venv/bin/odoo; \
-            chmod +x /opt/odoo/.venv/bin/odoo; \
-            mv /opt/odoo/overrides.txt .;\
-            uv pip install --no-cache-dir --no-binary psycopg2 -r requirements.txt --override overrides.txt; \
+            mv /opt/odoo/overrides.txt .; \
+            uv pip install --no-cache-dir --no-binary psycopg2 -e . --override overrides.txt; \
             uv pip install --no-cache-dir -r /opt/odoo/pip.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \

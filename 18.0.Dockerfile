@@ -103,7 +103,7 @@ RUN set -eux; \
 
 
 # Install & activate UV
-ARG ODOO_PYTHON_VERSION="3.13" \
+ARG ODOO_PYTHON_VERSION="3.12" \
     SYSTEM_PYTHON_VERSION="3.13"
 ENV PATH="/home/odoo/.local/bin:/home/odoo/.uv-python/bin:$PATH" \
     UV_PYTHON_INSTALL_DIR="/home/odoo/.uv-python" \
@@ -143,6 +143,7 @@ RUN set -eux; \
 # System Post-Configurations
 USER root
 
+COPY --chown=odoo:odoo recipes/18.0/overrides.txt /opt/odoo/overrides.txt
 COPY docker-entrypoint.sh /usr/local/sbin/
 COPY tools/exec_env.sh /usr/local/sbin/exec_env
 COPY tools/isodoo_generate_config.py /usr/local/sbin/isodoo_generate_config
@@ -233,9 +234,8 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/odoo-bin "$@"' > /opt/odoo/.venv/bin/odoo; \
-            chmod +x /opt/odoo/.venv/bin/odoo; \
-            uv pip install --no-cache-dir --no-binary psycopg2 -r requirements.txt; \
+            mv /opt/odoo/overrides.txt .;\
+            uv pip install --no-cache-dir --no-binary psycopg2 -e . --override overrides.txt; \
             uv pip install --no-cache-dir -r /opt/odoo/pip.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \

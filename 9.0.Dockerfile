@@ -135,8 +135,7 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo PIP & Extra dependencies
-ARG ODOO_EXTRA_PIP_PKGS="click-odoo click-odoo-contrib" \
-    PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
+ARG PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
 
 RUN set -eux; \
     curl -L -o get-pip.py "https://bootstrap.pypa.io/pip/${ODOO_PYTHON_VERSION}/get-pip.py"; \
@@ -145,11 +144,7 @@ RUN set -eux; \
     rm -f get-pip.py; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir --upgrade pip; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir virtualenv; \
-    "$PYTHON_ODOO_BIN_NAME" -m virtualenv /opt/odoo/.venv; \
-    . .venv/bin/activate; \
-    pip install --no-cache-dir ${ODOO_EXTRA_PIP_PKGS}; \
-    pip cache purge; \
-    deactivate;
+    "$PYTHON_ODOO_BIN_NAME" -m virtualenv /opt/odoo/.venv;
 
 
 # System Post-Configurations
@@ -246,12 +241,10 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/odoo.py "$@"' > /opt/odoo/.venv/bin/odoo; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/openerp-server "$@"' > /opt/odoo/.venv/bin/openerp-server; \
-            printf '#!/bin/bash\n/opt/odoo/git/odoo/openerp-gevent "$@"' > /opt/odoo/.venv/bin/openerp-gevent; \
-            chmod +x /opt/odoo/.venv/bin/odoo /opt/odoo/.venv/bin/openerp-server /opt/odoo/.venv/bin/openerp-gevent; \
             mv /opt/odoo/constraints.txt .;\
             pip install --no-binary psycopg2 -r requirements.txt -c constraints.txt; \
+            sed -i "s/'PIL'/'Pillow'/" setup.py; \
+            python setup.py install; \
             pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
@@ -262,6 +255,8 @@ ONBUILD RUN set -ex; \
             # Post-configurations
             python -m compileall /var/lib/odoo/core; \
             python -m compileall /var/lib/odoo/extra; \
+            ln -s /opt/odoo/.venv/bin/odoo.py /opt/odoo/.venv/bin/odoo; \
+            chmod +x /opt/odoo/.venv/bin/odoo; \
             # Ensure all is working
             odoo --version; \
             deactivate;

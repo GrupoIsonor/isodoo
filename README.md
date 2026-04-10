@@ -16,18 +16,19 @@ A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the
 
 ---
 
-## :ballot_box_with_check: Features
+## Features
 
 - Installation from source code
 - Detect missing modules at build time
 - Automatically obtains and downloads modules external dependencies
-- Strong use of virtual environments (using [uv](https://docs.astral.sh/uv/) in 14.0+)
-- [click-odoo](https://github.com/acsone/click-odoo)
-- [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib)
+- OpenERP/Odoo bin can be invoked with 'odoo' name in all versions
+- Strong use of virtual environments (using [uv](https://docs.astral.sh/uv/) in 14.0+ or [pyEnv](https://github.com/pyenv/pyenv))
+- [click-odoo](https://github.com/acsone/click-odoo) (in 11.0+)
+- [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib) (in 11.0+)
 - [git-aggregator](https://github.com/acsone/git-aggregator)
 - Compatible with [podman](https://podman.io/) (using --format docker)
 
-## :page_facing_up: Documentation
+## Documentation
 
 To configure Odoo, simply use environment variables with the prefix ```OCONF__{section}__{Param Name}```. Example for changing workers: ```OCONF__options__workers=4```.
 

@@ -9,9 +9,8 @@ passlib==1.6.4
 Pillow==2.9.0
 psutil==3.1.1
 psycopg2==2.7.3.2
-Python-Chart==1.39
 pyPdf==1.13
-python-dateutil==2.6.1
+python-dateutil==1.5
 python-openid==2.2.5
 pytz>=2025.2
 PyYAML==3.12
@@ -20,10 +19,12 @@ requests==2.18.4
 simplejson==3.8.0
 unittest2==1.1.0
 Werkzeug==0.14.1
-pyparsing==2.0.7
+pyparsing==2.1.10
 feedparser==5.2.1
 python-ldap==2.4.10
-vobject==0.9.5
+vobject==0.6.6
 gdata==2.0.17
-greenlet==0.4.16
-gevent==1.4.0
+pydot==1.2.4
+python-stdnum==1.3
+pywebdav==0.9.4.1
+# pychart (Installed from source in Dockerfile)

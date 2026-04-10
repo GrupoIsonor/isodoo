@@ -2,8 +2,7 @@ Babel==0.9.6
 lxml==2.3.3
 Mako==1.0.7
 psycopg2==2.7.3.2
-Python-Chart==1.39
-python-dateutil==2.6.1
+python-dateutil==1.5
 pytz>=2025.2
 PyYAML==3.12
 reportlab==3.4.0
@@ -13,12 +12,11 @@ pydot==1.2.4
 pywebdav==0.9.8
 simplejson==3.0.0
 requests==2.18.4
-vobject==0.9.5
+vobject==0.6.6
 gdata==2.0.17
 python-ldap==2.4.10
 python-openid==2.2.5
 xlwt==0.7.4
 zsi==2.0-rc3
 vatnumber==1.0
-greenlet==0.4.10
-gevent==1.1.2
+# pychart (Installed from source in Dockerfile)
