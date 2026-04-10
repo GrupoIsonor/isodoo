@@ -127,7 +127,7 @@ RUN set -eux; \
     "$PYTHON_SYSTEM_BIN_NAME" -m venv /home/odoo/.venv; \
     . .venv/bin/activate; \
     pip install --no-cache-dir --upgrade pip; \
-    pip install --no-cache-dir click-odoo-contrib git-aggregator pyyaml psycopg2; \
+    pip install --no-cache-dir git-aggregator pyyaml psycopg2; \
     pip cache purge; \
     deactivate;
 
@@ -136,7 +136,8 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo PIP & Extra dependencies
-ARG PIP_SHA256="311afebb7cdd310eb3a3a6bb6fffef53d84493db98c7cebf4008a18d3418c8be"
+ARG ODOO_EXTRA_PIP_PKGS="click-odoo click-odoo-contrib" \
+    PIP_SHA256="311afebb7cdd310eb3a3a6bb6fffef53d84493db98c7cebf4008a18d3418c8be"
 
 RUN set -eux; \
     curl -L -o get-pip.py "https://bootstrap.pypa.io/pip/${ODOO_PYTHON_VERSION}/get-pip.py"; \
@@ -145,7 +146,11 @@ RUN set -eux; \
     rm -f get-pip.py; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir --upgrade pip; \
     "$PYTHON_ODOO_BIN_NAME" -m pip install --no-cache-dir virtualenv; \
-    "$PYTHON_ODOO_BIN_NAME" -m virtualenv /opt/odoo/.venv;
+    "$PYTHON_ODOO_BIN_NAME" -m virtualenv /opt/odoo/.venv;. .venv/bin/activate; \
+    . .venv/bin/activate; \
+    pip install --no-cache-dir ${ODOO_EXTRA_PIP_PKGS}; \
+    pip cache purge; \
+    deactivate;
 
 
 # System Post-Configurations

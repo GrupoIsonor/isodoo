@@ -120,7 +120,6 @@ RUN --mount=type=cache,target=/home/odoo/.uv-cache,sharing=locked \
 
 # Install System UV & Extra tools
 RUN set -eux; \
-    uv tool install --python "${SYSTEM_PYTHON_VERSION}" click-odoo-contrib; \
     uv tool install --python "${SYSTEM_PYTHON_VERSION}" git-aggregator; \
     uv venv --python "${SYSTEM_PYTHON_VERSION}"; \
     . /home/odoo/.venv/bin/activate; \
@@ -132,8 +131,13 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo UV
+ARG ODOO_EXTRA_PIP_PKGS="click-odoo click-odoo-contrib"
+
 RUN set -eux; \
-    uv venv --python ${ODOO_PYTHON_VERSION};
+    uv venv --python ${ODOO_PYTHON_VERSION}; \
+    . /opt/odoo/.venv/bin/activate; \
+    uv pip install --no-cache-dir ${ODOO_EXTRA_PIP_PKGS}; \
+    deactivate;
 
 
 # System Post-Configurations

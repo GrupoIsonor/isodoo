@@ -84,7 +84,7 @@ RUN set -eux; \
     "$PYTHON_SYSTEM_BIN_NAME" -m venv /home/odoo/.venv; \
     . .venv/bin/activate; \
     pip install --no-cache-dir --upgrade pip; \
-    pip install --no-cache-dir click-odoo-contrib git-aggregator pyyaml psycopg2; \
+    pip install --no-cache-dir git-aggregator pyyaml psycopg2; \
     pip cache purge; \
     deactivate;
 
@@ -93,7 +93,7 @@ RUN set -eux; \
 WORKDIR /opt/odoo
 
 # Install Odoo PIP & Extra dependencies
-ARG ODOO_EXTRA_PIP_PKGS="pyinotify" \
+ARG ODOO_EXTRA_PIP_PKGS="pyinotify click-odoo click-odoo-contrib" \
     PIP_SHA256="40ee07eac6674b8d60fce2bbabc148cf0e2f1408c167683f110fd608b8d6f416"
 
 RUN set -eux; \

@@ -22,6 +22,7 @@ A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the
 - Detect missing modules at build time
 - Automatically obtains and downloads modules external dependencies
 - Strong use of virtual environments (using [uv](https://docs.astral.sh/uv/) in 14.0+)
+- [click-odoo](https://github.com/acsone/click-odoo)
 - [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib)
 - [git-aggregator](https://github.com/acsone/git-aggregator)
 - Compatible with [podman](https://podman.io/) (using --format docker)
