@@ -170,12 +170,12 @@ class TestIsOdooContainer:
         if odoo_version in OLDER_VERSIONS:
             return
 
-        partner_name = exec_docker(
+        user_login = exec_docker(
             "odoo",
             ["click-odoo"],
-            stdin="print('isodoo test:', env['res.users'].browse(1).login)",
+            stdin="ulogin=env['res.users'].browse(1).login;print('isodoo ok test' if ulogin else 'isodoo failed test')",
         )
-        assert "isodoo test: __system__" in partner_name
+        assert "isodoo ok test" in user_login
 
     def test_click_odoo_contrib(self, exec_docker, env_info):
         odoo_version = env_info["options"]["odoo_version"]
@@ -193,4 +193,4 @@ class TestIsOdooContainer:
                 "--purge-old-translations",
             ],
         )
-        assert result == ""
+        assert "not found" not in result

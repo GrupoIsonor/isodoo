@@ -19,13 +19,12 @@ A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the
 ## Features
 
 - Installation from source code
-- Detect missing modules at build time
-- Automatically obtains and downloads modules external dependencies
-- OpenERP/Odoo bin can be invoked with 'odoo' name in all versions
-- Strong use of virtual environments (using [uv](https://docs.astral.sh/uv/) in 14.0+ or [pyEnv](https://github.com/pyenv/pyenv))
-- [click-odoo](https://github.com/acsone/click-odoo) (in 11.0+)
-- [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib) (in 11.0+)
-- [git-aggregator](https://github.com/acsone/git-aggregator)
+- Automatic detection of missing modules at build time
+- Automatic download of external module dependencies
+- Unified `odoo` command across all versions
+- Virtual environments with [uv](https://docs.astral.sh/uv/) (14.0+) or [pyEnv](https://github.com/pyenv/pyenv)
+- Includes [click-odoo](https://github.com/acsone/click-odoo) and [click-odoo-contrib](https://github.com/acsone/click-odoo-contrib) (11.0+)
+- [git-aggregator](https://github.com/acsone/git-aggregator) support
 - Compatible with [podman](https://podman.io/) (using --format docker)
 
 ## Documentation
@@ -69,6 +68,8 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
 | PSQL_WAIT_TIMEOUT | Timeout to wait for the database | No | 30 |
+| OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | No | "" |
+| ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | No | "" |
 
 ** Check the Dockerfile for more configuration variables/args.
 
@@ -86,10 +87,10 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 
 | Port | Odoo Version |Description |
 |----------------|-------------|-------------|
-| 8069 | 6.1+ | Default port for HTTP and XML-RPC (web interface and API) |
-| 8071 | 6.0+ | **Optional** port for XML-RPC (depends on configuration) |
-| 8072 | 6.0+ | Port for long polling (real-time notifications, such as chat) |
-| 8080 | 6.0 | [6.0 Only] Default port for HTTP and XML-RPC (web interface and API) |
+| 8069 | 6.1+ | HTTP / XML-RPC |
+| 8071 | 6.0+ | **Optional** XML-RPC |
+| 8072 | 6.0+ | Long polling |
+| 8080 | 6.0 | [6.0 Only] HTTP / XML-RPC |
 
 ---
 <div align="center"><h2>Very Basic Usage Example</h2></div>

@@ -1,6 +1,6 @@
 # The system version is limited by:
 #  - WKHTMLTOPDF
-FROM debian:bookworm-slim
+FROM docker.io/library/debian:bookworm-slim
 
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 
@@ -261,4 +261,4 @@ EXPOSE 8069 8071 8072
 
 # Run
 ENTRYPOINT ["/usr/local/sbin/docker-entrypoint.sh"]
-CMD ["odoo", "-c", "/etc/odoo/odoo.conf"]
+CMD ["odoo"]

@@ -1,7 +1,7 @@
 # The system version is limited by:
 #  - lxml: Requires specific versions of libxml2==2.9.1 and libxslt==1.1.28
 #  - WKHTMLTOPDF: requires libssl1.1
-FROM debian:buster-slim
+FROM docker.io/library/debian:buster-slim
 
 SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 
@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages
 ARG TARGETARCH \
     WKHTMLTOPDF_PKGS="libfreetype6 libjpeg62-turbo libpng16-16 libxcb1 libxext6 libxrender1 xfonts-75dpi xfonts-base" \
-    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev gsfonts fonts-urw-base35"
+    ODOO_PKGS="fonts-liberation libpq-dev libjpeg-dev zlib1g-dev libssl-dev libc6-dev libxml2-dev libxslt1-dev libldap2-dev libsasl2-dev fonts-urw-base35"
 
 # hadolint ignore=SC2086
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -203,6 +203,7 @@ ONBUILD ENV LC_ALL="C.UTF-8" \
             VERIFY_MISSING_MODULES=true \
             AUTO_FILL_REPOS=true \
             ODOO_VERSION="${ODOO_VERSION}" \
+            OPENERP_SERVER="/etc/odoo/odoo.conf" \
             OCONF__options__data_dir="/var/lib/odoo/data" \
             OCONF__options__addons_path="/var/lib/odoo/core,/var/lib/odoo/extra"
 
@@ -277,4 +278,4 @@ EXPOSE 8069 8071 8072
 
 # Run
 ENTRYPOINT ["/usr/local/sbin/docker-entrypoint.sh"]
-CMD ["odoo", "-c", "/etc/odoo/odoo.conf"]
+CMD ["odoo"]
