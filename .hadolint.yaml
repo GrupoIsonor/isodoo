@@ -4,4 +4,4 @@ ignored:
   - DL3016
 trustedRegistries:
   - docker.io
-  - "*.gcr.io"
+  - ghcr.io

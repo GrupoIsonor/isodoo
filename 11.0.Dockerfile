@@ -25,6 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         ca-certificates \
         git \
         curl \
+        gettext \
         # By Conf
         ${WKHTMLTOPDF_PKGS} \
         ${ODOO_PKGS} \
@@ -58,8 +59,8 @@ RUN set -eux; \
 
 
 # Create the runtime user
-ARG USER_ODOO_UID=7777 \
-    USER_ODOO_GID=7777
+ARG USER_ODOO_UID=10000 \
+    USER_ODOO_GID=10001
 
 # hadolint ignore=SC2153
 RUN set -eux; \
@@ -204,6 +205,7 @@ ONBUILD ENV LC_ALL="C.UTF-8" \
             VERIFY_MISSING_MODULES=true \
             AUTO_FILL_REPOS=true \
             ODOO_VERSION="${ODOO_VERSION}" \
+            ODOO_RC="/etc/odoo/odoo.conf" \
             OCONF__options__data_dir="/var/lib/odoo/data" \
             OCONF__options__addons_path="/var/lib/odoo/core,/var/lib/odoo/extra"
 

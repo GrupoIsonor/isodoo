@@ -29,23 +29,20 @@ PG_VERSIONS = {
 OLDER_VERSIONS = ("6.0", "6.1", "7.0", "8.0", "9.0", "10.0")
 
 
-def _podman_execute(service: str, command: list[str], tty: bool = False) -> str:
-    podman_cmd = ["podman", "compose", "-p", COMPOSE_PROJECT_NAME, "exec"]
+def _compose_raw(
+    client: str, command: list[str], check: bool = False, stdin: str = None
+) -> str:
+    podman_cmd = [client, "compose", "-p", COMPOSE_PROJECT_NAME]
 
-    if tty:
-        podman_cmd.extend(["-it"])
-    else:
-        podman_cmd.append("-T")
-
-    podman_cmd.append(service)
     podman_cmd.extend(command)
 
     result = subprocess.run(
         podman_cmd,
+        input=stdin,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        check=False,
+        check=check,
     )
 
     output = result.stdout
@@ -104,14 +101,7 @@ def _podman_build(
     cmd.append(str(context_path))
 
     try:
-        subprocess.run(
-            cmd,
-            check=True,
-            text=True,
-            # Muestra salida en tiempo real (útil en CI / scripts largos)
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-        )
+        _compose_raw("podman", cmd, check=True)
     except subprocess.CalledProcessError as e:
         print("Error podman build:")
         print(e.output if e.output else "No detailed output.")
@@ -306,13 +296,11 @@ def docker_env(env_info):
 
 @pytest.fixture(scope="session")
 def exec_docker(docker_env, env_info):
-    def _run(env, args):
+    def _run(env, args, stdin=None):
         args_str = " ".join(args)
-        exec_cmd = f"exec_env {env} {args_str} 2>&1"
+        exec_cmd = ["exec_env", env] + args
         client_type = env_info["client_type"]
-        if client_type == "podman":
-            return _podman_execute("odoo", ["sh", "-c", exec_cmd], tty=False)
-        return docker_env.compose.execute("odoo", ["sh", "-c", exec_cmd], tty=False)
+        return _compose_raw(client_type, ["exec", "odoo"] + exec_cmd, stdin=stdin)
 
     return _run
 

@@ -36,8 +36,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 
 # Create the runtime user
-ARG USER_ODOO_UID=7777 \
-    USER_ODOO_GID=7777
+ARG USER_ODOO_UID=10000 \
+    USER_ODOO_GID=10001
 
 # hadolint ignore=SC2153
 RUN set -eux; \

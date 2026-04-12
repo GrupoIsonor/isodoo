@@ -1,8 +1,9 @@
 # Copyright  Alexandre Díaz <dev@redneboa.es>
 import requests
+from conftest import OLDER_VERSIONS
 
 ISODOO_UV_MIN_VERSION = 14
-OLDER_VERSIONS = ("6.0", "6.1", "7.0")
+OPENERP_VERSIONS = ("6.0", "6.1", "7.0")
 # <odoo version>: (<repo name>, <module_name>, (<list pip deps>, <list apt deps>))
 # See data/project_demo/v<odoo version>/addons/addons.yaml for more details
 EXTRA_ADDONS = {
@@ -75,7 +76,7 @@ class TestIsOdooContainer:
 
     def test_odoo_npm_dependencies(self, exec_docker, env_info):
         odoo_ver = env_info["options"]["odoo_version"]
-        if odoo_ver in OLDER_VERSIONS:
+        if odoo_ver in OPENERP_VERSIONS:
             return None
         npm_info = exec_docker("odoo", ["cat", "/opt/odoo/npm.txt"])
         assert "mirlo" in npm_info
@@ -151,7 +152,7 @@ class TestIsOdooContainer:
 
     def test_simple_http(self, docker_env, env_info):
         odoo_ver = env_info["options"]["odoo_version"]
-        if odoo_ver in OLDER_VERSIONS:
+        if odoo_ver in OPENERP_VERSIONS:
             get_url = f"http://{env_info['ip']}:{env_info['ports']['odoo']}"
         else:
             get_url = f"http://{env_info['ip']}:{env_info['ports']['odoo']}/web/login"
@@ -159,7 +160,37 @@ class TestIsOdooContainer:
         assert resp.status_code == 200
         projname = (
             "openerp"
-            if env_info["options"]["odoo_version"] in OLDER_VERSIONS
+            if env_info["options"]["odoo_version"] in OPENERP_VERSIONS
             else "Odoo"
         )
         assert projname in resp.text
+
+    def test_click_odoo(self, exec_docker, env_info):
+        odoo_version = env_info["options"]["odoo_version"]
+        if odoo_version in OLDER_VERSIONS:
+            return
+
+        partner_name = exec_docker(
+            "odoo",
+            ["click-odoo"],
+            stdin="print('isodoo test:', env['res.users'].browse(1).login)",
+        )
+        assert "isodoo test: __system__" in partner_name
+
+    def test_click_odoo_contrib(self, exec_docker, env_info):
+        odoo_version = env_info["options"]["odoo_version"]
+        if odoo_version in OLDER_VERSIONS:
+            return
+
+        result = exec_docker(
+            "odoo",
+            [
+                "click-odoo-makepot",
+                "--addons-dir",
+                "/var/lib/odoo/extra",
+                "--msgmerge",
+                "--no-fuzzy-matching",
+                "--purge-old-translations",
+            ],
+        )
+        assert result == ""
