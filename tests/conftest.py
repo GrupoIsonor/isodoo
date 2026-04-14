@@ -10,9 +10,9 @@ from python_on_whales import DockerClient
 IMAGE_TAG_NAME = "localhost/test:docker-isodoo"
 COMPOSE_PROJECT_NAME = "isodoo-test"
 PG_VERSIONS = {
-    "6.0": "9.3",
-    "6.1": "9.3",
-    "7.0": "9.3",
+    "6.0": "9.6",
+    "6.1": "9.6",
+    "7.0": "9.6",
     "8.0": "9.6",
     "9.0": "11",
     "10.0": "12",

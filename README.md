@@ -68,8 +68,8 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
 | PSQL_WAIT_TIMEOUT | Timeout to wait for the database | No | 30 |
-| OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | No | "" |
-| ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | No | "" |
+| OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | Yes | /etc/odoo/odoo.conf |
+| ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | Yes | /etc/odoo/odoo.conf |
 
 ** Check the Dockerfile for more configuration variables/args.
 
@@ -90,7 +90,7 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 | 8069 | 6.1+ | HTTP / XML-RPC |
 | 8071 | 6.0+ | **Optional** XML-RPC |
 | 8072 | 6.0+ | Long polling |
-| 8080 | 6.0 | [6.0 Only] HTTP / XML-RPC |
+| 8080 | 6.0 | HTTP / XML-RPC |
 
 ---
 <div align="center"><h2>Very Basic Usage Example</h2></div>
