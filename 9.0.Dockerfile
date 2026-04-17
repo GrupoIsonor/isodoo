@@ -192,7 +192,7 @@ ONBUILD ENV LC_ALL="C.UTF-8" \
             LANG="C.UTF-8" \
             NVM_DIR=/home/odoo/.nvm \
             GIT_DEPTH_NORMAL=1 \
-            GIT_DEPTH_MERGE=500 \
+            GIT_DEPTH_MERGE=100 \
             EXT_DEPS_OVERRIDES="openid:python-openid,ldap:python-ldap,evdev:evdev==1.5.0,usb.core:pyusb,${EXT_DEPS_OVERRIDES}" \
             VERIFY_MISSING_MODULES=true \
             AUTO_FILL_REPOS=true \

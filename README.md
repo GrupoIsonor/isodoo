@@ -63,7 +63,7 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 |----------------|-------------|-------------|-------------|
 | GITHUB_TOKEN | User token to use with git-aggregator | No | "" |
 | GIT_DEPTH_NORMAL | Default depth of commits | Yes | 1 |
-| GIT_DEPTH_MERGE | Default depth of commits when cloning with merges | Yes | 500 |
+| GIT_DEPTH_MERGE | Default depth of commits when cloning with merges | Yes | 100 |
 | EXT_DEPS_OVERRIDES | Overrides for the dependency names (old_name:new_name) separated by commas (Only useful if AUTO_DOWNLOAD_DEPENDENCIES is used) | No | "" |
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
