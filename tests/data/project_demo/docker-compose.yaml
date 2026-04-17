@@ -3,9 +3,11 @@ services:
     image: docker.io/library/postgres:${PYTEST_PG_VERSION:-9.3}-alpine
     tty: false
     stdin_open: false
+    secrets:
+      - odoo_db_password
     environment:
       POSTGRES_DB: odoodb
-      POSTGRES_PASSWORD: odoo
+      POSTGRES_PASSWORD_FILE: /run/secrets/odoo_db_password
       POSTGRES_USER: odoo
       POSTGRES_INITDB_ARGS: --locale=C --encoding=UTF8
     hostname: odoo-db
@@ -27,11 +29,13 @@ services:
     ports:
       - '127.0.0.1:8080:8080'
       - '127.0.0.1:8069:8069'
+    secrets:
+      - odoo_db_password
     environment:
       OCONF__options__log_level: debug
       OCONF__options__db_filter: odoodb$
       OCONF__options__db_user: odoo
-      OCONF__options__db_password: odoo
+      FOCONF__options__db_password: /run/secrets/odoo_db_password
       OCONF__options__db_host: odoo-db
       OCONF__options__db_name: odoodb
       OCONF__options__proxy_mode: false
@@ -39,3 +43,8 @@ services:
       OCONF__options__max_cron_threads: 0
       OCONF__options__without_demo: all
     hostname: odoo
+
+secrets:
+  odoo_db_password:
+    x-podman.relabel: Z
+    file: ./secrets/odoo_db_password.txt

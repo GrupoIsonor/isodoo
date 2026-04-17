@@ -231,7 +231,6 @@ def docker_env(env_info):
         compose_project_name=COMPOSE_PROJECT_NAME,
     )
 
-    # Initialize Database
     init_params = [
         "odoo",
         "-c",
@@ -247,48 +246,56 @@ def docker_env(env_info):
             "--no-xmlrpc" if odoo_ver in OLDER_VERSIONS else "--no-http",
         ]
 
-    if client_type == "podman":
-        subprocess.run(
-            [
-                "podman",
-                "compose",
-                "-p",
-                COMPOSE_PROJECT_NAME,
-                "run",
-                "--rm",
-                "odoo",
-            ]
-            + init_params,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=60,
-            check=True,
-        )
-    else:
-        docker.compose.run(
-            "odoo",
-            init_params,
-            remove=True,
-        )
-
-    # Up Services
-    if client_type == "podman":
-        subprocess.Popen(
-            ["podman", "compose", "-p", COMPOSE_PROJECT_NAME, "up", "--remove-orphans"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    else:
-        docker.compose.up(
-            detach=True,
-            remove_orphans=True,
-        )
-
-    print("Waiting Odoo...")
-    _wait_for_odoo(env_info["ip"], env_info["ports"]["odoo"])
-
     try:
+        # Initialize Database
+        if client_type == "podman":
+            subprocess.run(
+                [
+                    "podman",
+                    "compose",
+                    "-p",
+                    COMPOSE_PROJECT_NAME,
+                    "run",
+                    "--rm",
+                    "odoo",
+                ]
+                + init_params,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=60,
+                check=True,
+            )
+        else:
+            docker.compose.run(
+                "odoo",
+                init_params,
+                remove=True,
+            )
+
+        # Up Services
+        if client_type == "podman":
+            subprocess.Popen(
+                [
+                    "podman",
+                    "compose",
+                    "-p",
+                    COMPOSE_PROJECT_NAME,
+                    "up",
+                    "--remove-orphans",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        else:
+            docker.compose.up(
+                detach=True,
+                remove_orphans=True,
+            )
+
+        print("Waiting Odoo...")
+        _wait_for_odoo(env_info["ip"], env_info["ports"]["odoo"])
+
         yield docker
     finally:
         docker.compose.down(remove_orphans=True, volumes=True)

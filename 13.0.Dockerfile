@@ -204,7 +204,7 @@ ONBUILD ENV LC_ALL="C.UTF-8" \
             ODOO_VERSION="${ODOO_VERSION}" \
             ODOO_RC="/etc/odoo/odoo.conf" \
             OCONF__options__data_dir="/var/lib/odoo/data" \
-            OCONF__options__addons_path="/var/lib/odoo/core,/var/lib/odoo/extra"
+            OCONF__options__addons_path="/var/lib/odoo/extra,/var/lib/odoo/core"
 
 ONBUILD COPY --from=deps --chown=odoo:odoo apt.txt /opt/odoo/apt.txt
 ONBUILD COPY --from=deps --chown=odoo:odoo pip.txt /opt/odoo/pip.txt

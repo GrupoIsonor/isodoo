@@ -31,6 +31,9 @@ A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the
 
 To configure Odoo, simply use environment variables with the prefix ```OCONF__{section}__{Param Name}```. Example for changing workers: ```OCONF__options__workers=4```.
 
+You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a file! Example for db_password: ```FOCONF__options__db_password: /run/secrets/odoo_db_password```
+
+
 ** On Odoo 6.x you can use environment variables with the prefix ```OWCONF__{section}__{Param Name}``` (taking into account that the underscores will be replaced by dots).
 
 ### Build Arguments
@@ -118,7 +121,7 @@ ARG ODOO_VERSION
 FROM ghcr.io/grupoisonor/isodoo:${ODOO_VERSION} AS isodoo-runtime
 FROM isodoo-runtime AS isodoo-runtime-private
 COPY --from=private --chown=odoo:odoo / /var/lib/odoo/private
-ENV OCONF__options__addons_path="${OCONF__options__addons_path},/var/lib/odoo/private"
+ENV OCONF__options__addons_path="/var/lib/odoo/private,${OCONF__options__addons_path}"
 ```
 
 ### docker-compose.yaml
@@ -142,7 +145,7 @@ services:
       OCONF__options__log_level: debug
       OCONF__options__db_filter: odoodb$
       OCONF__options__db_user: odoo
-      OCONF__options__db_password: odoo
+      FOCONF__options__db_password: /run/secrets/odoo_db_password
       OCONF__options__db_host: odoo-db
       OCONF__options__db_name: odoodb
       OCONF__options__proxy_mode: false
@@ -154,7 +157,7 @@ services:
     image: postgres:18.0-alpine
     environment:
       POSTGRES_DB: odoodb
-      POSTGRES_PASSWORD: odoo
+      POSTGRES_PASSWORD_FILE: /run/secrets/odoo_db_password
       POSTGRES_USER: odoo
       POSTGRES_INITDB_ARGS: --locale=C --encoding=UTF8
     volumes:
@@ -167,6 +170,10 @@ services:
       retries: 5
       start_period: 30s
 
+secrets:
+  odoo_db_password:
+    x-podman.relabel: Z
+    file: ./secrets/odoo_db_password.txt
 
 volumes:
   filestore:
