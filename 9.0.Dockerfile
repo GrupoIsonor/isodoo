@@ -197,7 +197,7 @@ ONBUILD ENV LC_ALL="C.UTF-8" \
             VERIFY_MISSING_MODULES=true \
             AUTO_FILL_REPOS=true \
             ODOO_VERSION="${ODOO_VERSION}" \
-            OPENERP_SERVER="/etc/odoo/odoo.conf" \
+            OPENERP_SERVER="/etc/odoo/odoo.auto.conf" \
             OCONF__options__data_dir="/var/lib/odoo/data" \
             OCONF__options__addons_path="/var/lib/odoo/extra,/var/lib/odoo/core"
 

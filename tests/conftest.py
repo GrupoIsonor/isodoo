@@ -233,8 +233,6 @@ def docker_env(env_info):
 
     init_params = [
         "odoo",
-        "-c",
-        "/etc/odoo/odoo.conf",
         "-i",
         "base",
         "--stop-after-init",
@@ -319,8 +317,6 @@ def install_module(exec_docker):
             "odoo",
             [
                 "odoo",
-                "-c",
-                "/etc/odoo/odoo.conf",
                 "-i",
                 modname,
                 "--stop-after-init",

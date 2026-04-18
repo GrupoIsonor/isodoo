@@ -33,8 +33,9 @@ To configure Odoo, simply use environment variables with the prefix ```OCONF__{s
 
 You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a file! Example for db_password: ```FOCONF__options__db_password: /run/secrets/odoo_db_password```
 
-
 ** On Odoo 6.x you can use environment variables with the prefix ```OWCONF__{section}__{Param Name}``` (taking into account that the underscores will be replaced by dots).
+
+** If you set up your own configuration file and change the path in ```$ODOO_RC``` or ```$OPENERP_SERVER```, configuration via environment variables will be disabled.
 
 ### Build Arguments
 
@@ -71,8 +72,8 @@ You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a 
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
 | PSQL_WAIT_TIMEOUT | Timeout to wait for the database | No | 30 |
-| OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | Yes | /etc/odoo/odoo.conf |
-| ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | Yes | /etc/odoo/odoo.conf |
+| OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | No | /etc/odoo/odoo.auto.conf |
+| ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | No | /etc/odoo/odoo.auto.conf |
 
 ** Check the Dockerfile for more configuration variables/args.
 

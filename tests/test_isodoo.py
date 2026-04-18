@@ -118,7 +118,7 @@ class TestIsOdooContainer:
         assert check_msg in addons_info
 
     def test_odoo_config(self, exec_docker):
-        config_info = exec_docker("odoo", ["cat", "/etc/odoo/odoo.conf"])
+        config_info = exec_docker("odoo", ["cat", "/etc/odoo/odoo.auto.conf"])
         assert "db_name = odoodb" in config_info
 
     def test_auto_download(self, exec_docker, env_info):

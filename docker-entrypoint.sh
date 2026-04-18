@@ -26,17 +26,42 @@ if command -v wkhtmltopdf >/dev/null 2>&1; then
 fi
 echo "[entrypoint] ==== END SYSTEM INFO ===="
 echo "[entrypoint] Generating Odoo configuration..."
-isodoo_generate_config /etc/odoo/odoo.conf
-db_pass=$(python -c "import configparser; c = configparser.ConfigParser(); c.read('/etc/odoo/odoo.conf'); print(c['options']['db_password'])")
-echo "[entrypoint] Waiting for postgres database..."
-wait_for_psql --db_host="$OCONF__options__db_host" --db_port="${OCONF__options__db_port:-5432}" --db_user="${OCONF__options__db_user}" --db_password="${db_pass}" --timeout="${PSQL_WAIT_TIMEOUT:-30}"
+if [[ -n "${ODOO_RC:-}" ]]; then
+    CONFIG="$ODOO_RC"
+elif [[ -n "${OPENERP_SERVER:-}" ]]; then
+    CONFIG="$OPENERP_SERVER"
+else
+    echo "[entrypoint] No configuration defined! Fallback to 'auto' mode..."
+    CONFIG="/etc/odoo/odoo.auto.conf"
+    export ODOO_RC="$CONFIG"
+    export OPENERP_SERVER="$CONFIG"
+fi
+if [[ $CONFIG == "/etc/odoo/odoo.auto.conf" ]]; then
+    isodoo_generate_config "$CONFIG"
+fi
+RAW_ODOO_INFO=$(python3 -c "
+import configparser
+c = configparser.ConfigParser()
+if not c.read('${CONFIG}'):
+    exit(1)
+opts = c['options']
+print(f\"{opts.get('db_host', 'localhost')}|{opts.get('db_port', '5432')}|{opts.get('db_user', 'odoo')}|{opts['db_password']}\")
+" 2>/dev/null)
+if [[ -z "$RAW_ODOO_INFO" ]]; then
+    echo "[ERROR] Could not read configuration or missing db_password in $CONFIG"
+    exit 1
+fi
+IFS='|' read -ra odoo_db_info <<< "$RAW_ODOO_INFO"
+echo "[entrypoint] Waiting for postgres database at ${odoo_db_info[0]}..."
+wait_for_psql --db_host="${odoo_db_info[0]}" --db_port="${odoo_db_info[1]}" --db_user="${odoo_db_info[2]}" --db_password="${odoo_db_info[3]}" --timeout="${PSQL_WAIT_TIMEOUT:-30}"
 deactivate
 
 # Use odoo python environment
 . /opt/odoo/.venv/bin/activate
 echo "[entrypoint] ==== ODOO ENV. INFO ===="
+echo "[entrypoint] - Odoo config: $CONFIG"
 if [ -d /opt/odoo/git/odoo ]; then
-    INFO_ODOO_SRC_HASH=$(git -C /opt/odoo/git/odoo rev-parse HEAD 2>&1)
+    INFO_ODOO_SRC_HASH=$(git -C /opt/odoo/git/odoo rev-parse HEAD 2>/dev/null || echo "UNKNOWN")
     echo "[entrypoint] - Odoo source hash: $INFO_ODOO_SRC_HASH"
 else
     echo "[entrypoint] - Odoo source hash: NO SOURCE DETECTED!"

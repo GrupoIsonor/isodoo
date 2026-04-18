@@ -7,7 +7,7 @@ from pathlib import Path
 from collections import defaultdict
 
 parser = argparse.ArgumentParser(
-    description="Collects OCONF_ environment variables and saves them to an .conf file"
+    description="Collects OCONF__|FOCONF__ environment variables and saves them to an .conf file"
 )
 parser.add_argument("output", help="Path to the output .conf file")
 args = parser.parse_args()
