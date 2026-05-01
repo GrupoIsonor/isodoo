@@ -6,12 +6,12 @@
 </h1>
 
 <p align="center">
-ISO 0doo (By <a src="https://www.grupoisonor.es/">Grupo Isonor</a>)
-</p>
-<p align="center">
 *** PROJECT UNDER DEVELOPMENT. NOT READY FOR PRODUCTION ***
 
 A lightweight image for running [Odoo CE](https://www.odoo.com/) from 6.0 to the moon! Strongly inspired by the [Doodba project](https://github.com/Tecnativa/doodba/) and the official [Odoo image](https://github.com/odoo/docker).
+</p>
+<p align="center">
+-- <a href="https://www.grupoisonor.es/">Grupo Isonor</a> --
 </p>
 
 ---
@@ -83,7 +83,6 @@ You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a 
 |----------------|-------------|-------------|------------- |
 | deps | apt.txt - pip.txt - npm.txt | Yes | Contains the files that define the necessary dependencies |
 | addons | repos.yaml - addons.yaml | Yes | Contains the files that define the available add-ons |
-| private | add-ons folders | No | Contains the private add-ons |
 
 ** Example: https://github.com/GrupoIsonor/isodoo/tree/master/tests/data/project_demo/v19.0
 
@@ -103,17 +102,17 @@ You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a 
 ```
 myproject/
   - Dockerfile
-  - docker-compose.yaml
+  - compose.yaml
   - deps/
     - pip.txt
     - apt.txt
     - npm.txt
   - addons/
+    - private/
+        - my_module_a/
+        - my_module_b/
     - addons.yaml
     - repos.yaml
-  - private/
-    - my_module_a/
-    - my_module_b/
 ```
 
 ### Dockerfile
@@ -121,11 +120,11 @@ myproject/
 ARG ODOO_VERSION
 FROM ghcr.io/grupoisonor/isodoo:${ODOO_VERSION} AS isodoo-runtime
 FROM isodoo-runtime AS isodoo-runtime-private
-COPY --from=private --chown=odoo:odoo / /var/lib/odoo/private
+COPY --from=addons --chown=odoo:odoo /private/ /var/lib/odoo/private
 ENV OCONF__options__addons_path="/var/lib/odoo/private,${OCONF__options__addons_path}"
 ```
 
-### docker-compose.yaml
+### compose.yaml
 ```yml
 services:
   odoo:
@@ -136,20 +135,18 @@ services:
       additional_contexts:
         deps: ./deps
         addons: ./addons
-        private: ./private
     depends_on:
       db:
         condition: service_healthy
     ports:
       - '127.0.0.1:8069:8069'
     environment:
-      OCONF__options__log_level: debug
+      OCONF__options__log_level: warn
       OCONF__options__db_filter: odoodb$
       OCONF__options__db_user: odoo
       FOCONF__options__db_password: /run/secrets/odoo_db_password
       OCONF__options__db_host: odoo-db
       OCONF__options__db_name: odoodb
-      OCONF__options__proxy_mode: false
     volumes:
       - filestore:/var/lib/odoo/data
     hostname: odoo

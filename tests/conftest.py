@@ -227,7 +227,7 @@ def docker_env(env_info):
     docker = DockerClient(
         client_call=client_call,
         client_type=client_type,
-        compose_files=["docker-compose.yaml"],
+        compose_files=["compose.yml"],
         compose_project_name=COMPOSE_PROJECT_NAME,
     )
 
