@@ -71,7 +71,7 @@ You can also use ```FOCONF__{section}__{Param Name}``` to read the value from a 
 | EXT_DEPS_OVERRIDES | Overrides for the dependency names (old_name:new_name) separated by commas (Only useful if AUTO_DOWNLOAD_DEPENDENCIES is used) | No | "" |
 | VERIFY_MISSING_MODULES | Indicates whether all modules (and other modules on which it depends) are available | No | True |
 | AUTO_FILL_REPOS | Indicates whether repos.yaml should be adjusted to match what is used in addons.yaml (OCA repositories only) | No | True |
-| PSQL_WAIT_TIMEOUT | Timeout to wait for the database | No | 30 |
+| PSQL_WAIT_TIMEOUT | Timeout to wait for the database (0 disables psql check) | No | 30 |
 | OPENERP_SERVER | Indicates the location of the Odoo configuration file (version 9.0 and older) | No | /etc/odoo/odoo.auto.conf |
 | ODOO_RC | Indicates the location of the Odoo configuration file (10.0+) | No | /etc/odoo/odoo.auto.conf |
 

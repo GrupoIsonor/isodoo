@@ -15,6 +15,9 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
+    if args.timeout == 0:
+        sys.exit(0)
+
     start_time = time.time()
     while (time.time() - start_time) < args.timeout:
         try:
