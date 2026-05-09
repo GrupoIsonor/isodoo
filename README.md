@@ -142,7 +142,7 @@ services:
       - '127.0.0.1:8069:8069'
     environment:
       OCONF__options__log_level: warn
-      OCONF__options__db_filter: odoodb$
+      OCONF__options__dbfilter: odoodb$
       OCONF__options__db_user: odoo
       FOCONF__options__db_password: /run/secrets/odoo_db_password
       OCONF__options__db_host: odoo-db
