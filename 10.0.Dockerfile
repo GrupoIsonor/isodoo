@@ -243,10 +243,9 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
             mv /opt/odoo/constraints.txt .;\
-            pip install --no-binary psycopg2 -r requirements.txt -c constraints.txt; \
+            pip install --no-binary psycopg2 -r requirements.txt -r /opt/odoo/pip.txt -c constraints.txt; \
             sed -i "s/'PIL'/'Pillow'/" setup.py; \
             python setup.py install; \
-            pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \

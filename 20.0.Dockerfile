@@ -87,7 +87,7 @@ WORKDIR /home/odoo
 ARG NVM_VERSION="v0.40.3" \
     NVM_DIR=/home/odoo/.nvm \
     NVM_INSTALL_SHA256="2d8359a64a3cb07c02389ad88ceecd43f2fa469c06104f92f98df5b6f315275f" \
-    NODE_VERSION="20.18.0" \
+    NODE_VERSION="22.12.0" \
     ODOO_NPM_PKGS="rtlcss"
 
 # hadolint ignore=SC2086
@@ -104,8 +104,8 @@ RUN set -eux; \
 
 
 # Install & activate UV
-ARG ODOO_PYTHON_VERSION="3.12" \
-    SYSTEM_PYTHON_VERSION="3.13"
+ARG ODOO_PYTHON_VERSION="3.14" \
+    SYSTEM_PYTHON_VERSION="3.14"
 ENV PATH="/home/odoo/.local/bin:/home/odoo/.uv-python/bin:$PATH" \
     UV_PYTHON_INSTALL_DIR="/home/odoo/.uv-python" \
     UV_COMPILE_BYTECODE=1 \
@@ -144,7 +144,7 @@ RUN set -eux; \
 # System Post-Configurations
 USER root
 
-COPY --chown=odoo:odoo recipes/18.0/overrides.txt /opt/odoo/overrides.txt
+COPY --chown=odoo:odoo recipes/20.0/extra-requirements.txt /opt/odoo/extra-requirements.txt
 COPY docker-entrypoint.sh /usr/local/sbin/
 COPY tools/exec_env.sh /usr/local/sbin/exec_env
 COPY tools/isodoo_generate_config.py /usr/local/sbin/isodoo_generate_config
@@ -180,7 +180,7 @@ RUN set -eux; \
 
 # Install Odoo + Extras
 ONBUILD ARG EXT_DEPS_OVERRIDES='' \
-            ODOO_VERSION="18.0" \
+            ODOO_VERSION="20.0" \
             AUTO_DOWNLOAD_DEPENDENCIES=true
 ONBUILD ENV LC_ALL="C.UTF-8" \
             LANG="C.UTF-8" \
@@ -223,6 +223,7 @@ ONBUILD RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
             --mount=type=cache,target=/var/lib/apt,sharing=locked \
             set -ex; \
             apt-get update; \
+            /opt/odoo/git/odoo/setup/debinstall.sh -q; \
             xargs -r apt-get install -y --no-install-recommends < /opt/odoo/apt.txt; \
             apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
             apt-get clean; \
@@ -236,8 +237,8 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            mv /opt/odoo/overrides.txt .; \
-            uv pip install --no-cache-dir --no-binary psycopg2 -e . -r /opt/odoo/pip.txt --override overrides.txt; \
+            mv /opt/odoo/extra-requirements.txt .; \
+            uv pip install --no-cache-dir --no-binary psycopg2 -e . -r /opt/odoo/pip.txt -r extra-requirements.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \
             find .. -name "*.egg-info" -type d -exec rm -rf {} +; \

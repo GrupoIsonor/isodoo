@@ -235,8 +235,7 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 # hadolint ignore=DL3042
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
-            uv pip install --no-cache-dir --no-binary psycopg2 -e .; \
-            uv pip install --no-cache-dir -r /opt/odoo/pip.txt; \
+            uv pip install --no-cache-dir --no-binary psycopg2 -e . -r /opt/odoo/pip.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \
             find .. -name "*.egg-info" -type d -exec rm -rf {} +; \

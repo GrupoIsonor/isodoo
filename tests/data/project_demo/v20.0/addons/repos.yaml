@@ -1,0 +1,11 @@
+# See https://github.com/acsone/git-aggregator
+./odoo:
+  defaults:
+    depth: $GIT_DEPTH_NORMAL
+  remotes:
+    odoo: https://github.com/odoo/odoo.git
+  target: odoo $ODOO_VERSION
+  merges:
+    - odoo $ODOO_VERSION
+    # Example of a merge of the PR with the number <PR>
+    # - ocb refs/pull/<PR>/head

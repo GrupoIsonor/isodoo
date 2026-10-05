@@ -32,6 +32,7 @@ EXTRA_ADDONS = {
     "17.0": ("reporting-engine", "sql_export_excel", (("openpyxl",), None)),
     "18.0": ("reporting-engine", "sql_export_excel", (("openpyxl",), None)),
     "19.0": ("reporting-engine", "report_xlsx", (("xlsxwriter", "xlrd"), None)),
+    "20.0": ("queue", "queue_job", (("requests", "openupgradelib"), None)),
 }
 
 

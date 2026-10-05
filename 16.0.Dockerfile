@@ -237,8 +237,7 @@ ONBUILD WORKDIR /opt/odoo/git/odoo
 ONBUILD RUN set -ex; \
             . /opt/odoo/.venv/bin/activate; \
             mv /opt/odoo/overrides.txt .; \
-            uv pip install --no-cache-dir --no-binary psycopg2 -e . --override overrides.txt; \
-            uv pip install --no-cache-dir -r /opt/odoo/pip.txt; \
+            uv pip install --no-cache-dir --no-binary psycopg2 -e . -r /opt/odoo/pip.txt --override overrides.txt; \
             # Cleanup
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \
             find .. -name "*.egg-info" -type d -exec rm -rf {} +; \

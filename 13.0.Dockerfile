@@ -252,10 +252,9 @@ ONBUILD RUN set -ex; \
                 -e '/^pytz==/c\pytz>=2025.2' \
                 -e '/^vatnumber==/c\python-stdnum>=1.13,<1.15' \
                 requirements.txt; \
-            pip install --no-binary psycopg2 -r requirements.txt; \
+            pip install --no-binary psycopg2 -r requirements.txt -r /opt/odoo/pip.txt; \
             sed -i "s/'vatnumber'/'python-stdnum'/" setup.py; \
             python setup.py install; \
-            pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \

@@ -42,6 +42,7 @@ services:
       OCONF__options__workers: 0
       OCONF__options__max_cron_threads: 0
       OCONF__options__without_demo: all
+      OCONF__options__http_interface: 0.0.0.0
     hostname: odoo
 
 secrets:
