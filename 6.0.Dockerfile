@@ -210,8 +210,9 @@ ONBUILD RUN set -ex; \
             pip install caldav==0.5.0 --no-deps; \
             # Install OpenERP
             mv /opt/odoo/requirements.txt .;\
-            pip install --no-binary psycopg2 -r requirements.txt -r /opt/odoo/pip.txt; \
+            pip install --no-binary psycopg2 -r requirements.txt; \
             python setup.py install; \
+            pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \

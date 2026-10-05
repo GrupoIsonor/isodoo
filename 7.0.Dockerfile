@@ -233,9 +233,10 @@ ONBUILD RUN set -ex; \
             rm -rf PyChart; \
             # Install OpenERP
             mv /opt/odoo/requirements.txt .;\
-            pip install --no-binary psycopg2 -r requirements.txt -r /opt/odoo/pip.txt; \
+            pip install --no-binary psycopg2 -r requirements.txt; \
             sed -i "s/'PIL'/'Pillow'/" setup.py; \
             python setup.py install; \
+            pip install -r /opt/odoo/pip.txt; \
             # Cleanup
             pip cache purge; \
             find .. -maxdepth 3 -name "build" -type d -exec rm -rf {} +; \
