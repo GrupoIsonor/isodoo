@@ -99,7 +99,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}
-      LATEST_VERSION: "19.0"
+      LATEST_VERSION: "20.0"
     strategy:
       matrix:
         version: ["6.0", "6.1", "7.0", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "15.0"]
