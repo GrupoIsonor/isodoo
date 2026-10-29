@@ -106,11 +106,13 @@ RUN set -eux; \
 # Install & activate UV
 ARG ODOO_PYTHON_VERSION="3.9" \
     SYSTEM_PYTHON_VERSION="3.13"
+# PyPDF2 requires UV_LEGACY_TAR_BACKEND
 ENV PATH="/home/odoo/.local/bin:/home/odoo/.uv-python/bin:$PATH" \
     UV_PYTHON_INSTALL_DIR="/home/odoo/.uv-python" \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_NO_CACHE=1
+    UV_NO_CACHE=1 \
+    UV_LEGACY_TAR_BACKEND=1
 
 RUN --mount=type=cache,target=/home/odoo/.uv-cache,sharing=locked \
     set -eux; \
